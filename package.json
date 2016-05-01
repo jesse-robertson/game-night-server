@@ -1,0 +1,29 @@
+{
+  "name": "workspace",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "forever -w src/index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jesse-robertson/game-night-server.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/jesse-robertson/game-night-server/issues"
+  },
+  "homepage": "https://github.com/jesse-robertson/game-night-server#readme",
+  "dependencies": {
+    "isomorphic-fetch": "^2.2.1",
+    "qs": "^6.1.0",
+    "ws": "^1.1.0"
+  },
+  "devDependencies": {
+    "forever": "^0.15.1"
+  }
+}
