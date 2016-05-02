@@ -1,5 +1,5 @@
 const ws = require('ws');
-const wss = new ws.Server({ port: 8080 });
+const wss = new ws.Server({ port: 8081 });
 
 module.exports = (next) => {
     wss.on('connection', (ws) => {

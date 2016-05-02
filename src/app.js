@@ -1,11 +1,8 @@
 const fs = require('fs');
 
 
-const initialEntity = {
-    group: {
-        games: ["1", "2", "3"]
-    },
-    game: {
+/*
+game: {
         "1" : {
             name: 'A Really Cool Game',
             keywords: 'Action Adventure Awesomeness',
@@ -25,36 +22,102 @@ const initialEntity = {
             cover: {url:'https://upload.wikimedia.org/wikipedia/en/5/58/Resident_Evil_5_Box_Artwork.jpg'}
         }
     }
+*/
+
+const initialEntity = {
+    group: {
+        games: ["1", "2", "3"]
+    },
+    
 };
 
-module.exports = (socket, model) => {
+const toIdMap = (thing) => {
     
+    // If a reducible object (array) was passed...
+    if (typeof thing.reduce === 'function') {
+        return thing.reduce( 
+            (soFar, current) => Object.assign(soFar,toIdMap(current))
+        , {});
+    }
     
-    const writeToFile = name => obj => fs.writeFile(name, JSON.stringify(obj));
-    
-    model.igdb.search('super smash').then(result => {
+    const idMap = {};
+    const newThing = Object.assign({},thing);
+    delete newThing.id;
+    idMap[thing.id] = newThing
+    return idMap;
+}
 
-        result.games.forEach( game => {
-            const id = game.id.toString();
-            model.igdb.read(id).then(writeToFile(id+'.json')).catch(console.error);
-        });
-    }).catch(console.error);
+const ACTION = 'ACTION';
+const INITIAL_CACHE = 'INITIAL_CACHE'
+
+module.exports = (socket, model) => {
+        
+    // const writeToFile = name => obj => fs.writeFile(name, JSON.stringify(obj));
+  
+    // model.igdb.search('super smash')
+    //     .then(toIdMap)
+    //     .then(x=>JSON.stringify(x,null,2))
+    //     .then(console.log)
+    //     .catch(console.error);
     
+    //model.igdb.read('1628').then(toIdMap).then(console.log).catch(console.error);
+   
+    const dispatch = (action) => socket.send({
+        type: ACTION,
+        payload: action
+    });
+   
     
-    
-    
-    
-    
-    
-    socket.receive(payload => console.log('received: %s', JSON.stringify(payload)) );
- 
-    socket.send({
-        type: 'ACTION',
-        payload: {
-            type: 'REFRESH_ENTITY',
-            payload: {
-                entity: initialEntity 
+    socket.receive( message => {
+        if (message.type === ACTION) {
+            
+            const action = message.payload;
+            console.log('action received: %s', action.type);
+            switch (action.type) {
+                case 'SEARCH_REQUEST': return model.igdb.search(action.payload.query).then(results => {
+                    dispatch({
+                        type: 'SEARCH_SUCCESS',
+                        payload: {
+                            query: action.payload.query,
+                            results: results
+                        }
+                    })
+                });
             }
         }
     });
+ 
+   
+
+    const refreshEntity = (entity) => ({
+        type: 'REFRESH_ENTITY',
+        payload: {
+            entity: entity
+        }
+    })    
+    
+    var entity = {};
+    
+    
+    const addToEntity = (obj) => {
+        entity = Object.assign(entity, obj);
+        return entity;    
+    } 
+     
+    addToEntity({
+        group : {
+            games : ['1627','1628','1629','1626']
+        }
+    })
+    
+    Promise.all(entity.group.games.map( id => model.igdb.read(id)))
+        .then(toIdMap)
+        .then(idMap => ({game:idMap}))
+        .then(addToEntity)
+        .then( entity => dispatch(refreshEntity(entity)))
+        .catch(console.error);
+    
+    // model.group.get('brash-shmoes').then(toIdMap).then( game => {
+    //     clientDispatch(refreshEntity())        
+    // });
 }

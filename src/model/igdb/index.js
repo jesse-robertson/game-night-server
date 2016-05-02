@@ -1,5 +1,7 @@
 const api = require('./api');
+const routes = require('./routes');
 
-exports.search = (q) => api('search')({q});
+//module.exports = routes(api);
 
-exports.read = (id) => api(id)();
+const fakeApi = require('./fakeApi');
+module.exports = routes(fakeApi);
