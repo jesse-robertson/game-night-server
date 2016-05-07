@@ -14,6 +14,8 @@ const handleServerErrors = (response) => {
     return response.json();
 };
 
-const api = (path) => (params) => fetch(baseUrl+path+getQueryString(params))
-                                    .then(handleServerErrors);
+const api = (path) => (params) => 
+    fetch(baseUrl+path+getQueryString(params))
+        .then(handleServerErrors);
+        
 module.exports = api;
