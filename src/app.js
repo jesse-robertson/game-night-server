@@ -30,20 +30,30 @@ module.exports = (socket, model) => {
         return x;
     }
        
-    const first = (n) => (results) => results.slice(0, n);   
+    const take = (n) => (results) => results.slice(0, n);   
        
-    const actor = {};
+    let setActor, getActor;   
+    () => {
+        var actor = {};
+        setActor = (newActor) => actor=newActor;
+        getActor = () => actor;
+    }()   
     
     const actionMap = {
-        [actionTypes.SUGGEST_GAME] : (model, actor, action) => console.log(action),
+        ["FACEBOOK_LOGIN_SUCCESS"] : (model, actor, action) => {
+            console.log(modle, actor, action);
+        },
+        [actionTypes.SUGGEST_GAME] : (model, actor, action) => console.log(''),
         [actionTypes.SEARCH_REQUEST] : (model, actor, action) => 
             model.igdb.search(action.payload.query)
-                .then(first(5))
+                .then(take(5))
                 .then(actionCreators.searchSuccess(action.payload.query))  
     }
     
     socket.receive( message => {
         if (message.type === actionTypes.ACTION) {
+            console.log(message.payload);
+            const actor = getActor();
             const action = message.payload;        
             const handler = actionMap[action.type];
             if (handler) {
